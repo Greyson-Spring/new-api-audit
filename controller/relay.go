@@ -140,6 +140,10 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 
 	if needAuditPrompt && meta != nil {
 		promptText := meta.CombineText
+		promptPreview := audit.PreviewText(promptText, 500)
+		if userPrompt := audit.ExtractUserPrompt(request); userPrompt != "" {
+			promptPreview = audit.PreviewText(userPrompt, 500)
+		}
 		audit.EnqueueRequest(audit.RequestEvent{
 			RequestId:     requestId,
 			CreatedAt:     time.Now().UTC().Format(time.RFC3339Nano),
@@ -152,7 +156,7 @@ func Relay(c *gin.Context, relayFormat types.RelayFormat) {
 			RelayFormat:   string(relayFormat),
 			IsStream:      relayInfo.IsStream,
 			PromptHash:    audit.HashText(promptText),
-			PromptPreview: audit.PreviewText(promptText, 500),
+			PromptPreview: promptPreview,
 			PromptText:    promptText,
 		})
 	}

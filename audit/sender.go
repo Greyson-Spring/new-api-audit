@@ -14,6 +14,8 @@ import (
 	"sync"
 	"time"
 	"unicode/utf8"
+
+	"github.com/QuantumNous/new-api/relaykit/dto"
 )
 
 const (
@@ -101,6 +103,24 @@ func PreviewText(text string, limit int) string {
 		return compact
 	}
 	return string(runes[:limit]) + "..."
+}
+
+func ExtractUserPrompt(request dto.Request) string {
+	switch r := request.(type) {
+	case *dto.GeneralOpenAIRequest:
+		for i := len(r.Messages) - 1; i >= 0; i-- {
+			if r.Messages[i].Role == "user" {
+				return r.Messages[i].StringContent()
+			}
+		}
+	case *dto.ClaudeRequest:
+		for i := len(r.Messages) - 1; i >= 0; i-- {
+			if r.Messages[i].Role == "user" {
+				return r.Messages[i].GetStringContent()
+			}
+		}
+	}
+	return ""
 }
 
 func EnqueueRequest(event RequestEvent) {
